@@ -17,5 +17,5 @@ There may be situations where you want to test woz creation using older versions
 
 `cat infile.a2r | a2r3to2 > outfile.a2r`
 
-Where infile.a2r is a version 3 A2R input file and outfile.a2r is a versions 2 A2R file that will be created.
+Where infile.a2r is a version 3 A2R input file and outfile.a2r is a version 2 A2R file that will be created.
 

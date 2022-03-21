@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     fwrite(&mark, sizeof(uint8_t), 1, fpo);
 
     fseek(fpo, pos, 0);
-    fwrite(&pos, sizeof(uint32_t), 1, fpo);
+    fwrite(&size, sizeof(uint32_t), 1, fpo);
 
     fclose(fpi);
     fclose(fpo);
