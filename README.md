@@ -8,7 +8,7 @@ There may be situations where you want to test woz creation using older versions
 
 
 ### Building
-`makeall`
+`make all`
 
 
 
