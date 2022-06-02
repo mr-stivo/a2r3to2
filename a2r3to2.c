@@ -101,7 +101,6 @@ int main(int argc, char* argv[]) {
     fwrite(&a2r2_info_chunk, sizeof(a2r2_info_chunk), 1, fpo);
 
     fread(&a2rv3_rwcp_chunk, sizeof(a2rv3_rwcp_chunk), 1, fpi);
-    
     a2r2_strm_chunk.chunk_id = 0x4D525453;
     a2r2_strm_chunk.chunk_size = 0;
     fwrite(&a2r2_strm_chunk, sizeof(a2r2_strm_chunk), 1, fpo);
@@ -114,19 +113,59 @@ int main(int argc, char* argv[]) {
         uint8_t *data = malloc(a2rv3_stream_capture.capture_data_size);
         fread(data, sizeof(uint8_t), a2rv3_stream_capture.capture_data_size, fpi);
 
-        size += a2rv3_stream_capture.capture_data_size;
-        size += 10;
+        if(a2rv3_rwcp_chunk.resolution != 125000) {
+            uint32_t d = 125000 / a2rv3_rwcp_chunk.resolution;
+            uint32_t data_p = 0, new_data_p = 0;
+            uint8_t *new_data = malloc(a2rv3_stream_capture.capture_data_size);
+            uint32_t t;
 
-        a2r2_strm_capture.location = a2rv3_stream_capture.location;
-        a2r2_strm_capture.capture_type = a2rv3_stream_capture.capture_type;
-        a2r2_strm_capture.data_length = a2rv3_stream_capture.capture_data_size;
-        a2r2_strm_capture.estimated_loop_point = a2rv3_stream_capture.index_signal;
+            while(data_p < a2rv3_stream_capture.capture_data_size) {
+                t = 0;
+                
+                while(data[data_p] == 255) {
+                    t += data[data_p++];
+                }
+                t += data[data_p++];
 
-        fwrite(&a2r2_strm_capture, sizeof(a2r2_strm_capture), 1, fpo);
-        fwrite(data, sizeof(uint8_t), a2r2_strm_capture.data_length, fpo);
+                t /= d;
+
+                while(t > 255) {
+                    t -= 255;
+                    new_data[new_data_p++] = 255;
+                }
+                new_data[new_data_p++] = t;
+
+            }
+
+            size += new_data_p;
+            size += 10;
+
+            a2r2_strm_capture.location = a2rv3_stream_capture.location;
+            a2r2_strm_capture.capture_type = a2rv3_stream_capture.capture_type;
+            a2r2_strm_capture.data_length = new_data_p;
+            a2r2_strm_capture.estimated_loop_point = a2rv3_stream_capture.index_signal / d;
+
+            fwrite(&a2r2_strm_capture, sizeof(a2r2_strm_capture), 1, fpo);
+            fwrite(new_data, sizeof(uint8_t), a2r2_strm_capture.data_length, fpo);
+
+            free(new_data);
+
+        } else {
+            size += a2rv3_stream_capture.capture_data_size;
+            size += 10;
+
+            a2r2_strm_capture.location = a2rv3_stream_capture.location;
+            a2r2_strm_capture.capture_type = a2rv3_stream_capture.capture_type;
+            a2r2_strm_capture.data_length = a2rv3_stream_capture.capture_data_size;
+            a2r2_strm_capture.estimated_loop_point = a2rv3_stream_capture.index_signal;
+
+            fwrite(&a2r2_strm_capture, sizeof(a2r2_strm_capture), 1, fpo);
+            fwrite(data, sizeof(uint8_t), a2r2_strm_capture.data_length, fpo);
+
+        }
 
         free(data);
-
+        
         fread(&mark, sizeof(uint8_t), 1, fpi);
     }
 
